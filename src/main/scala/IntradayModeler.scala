@@ -53,23 +53,6 @@ class IntradayModeler {
     assembler.transform(df)
   }
 
-  def getPredictedDataFrame(featureDf: DataFrame, targetCol: String, featureCol: String): DataFrame = {
-    val featureIndexer = new VectorIndexer()
-      .setInputCol(featureCol)
-      .setOutputCol("indexedFeatures")
-      .setMaxCategories(4)
-      .fit(featureDf)
-    val Array(trainingData, testData) = featureDf.randomSplit(Array(0.7, 0.3))
-    // Train a RandomForest model.
-    val rf = new RandomForestRegressor()
-      .setLabelCol(targetCol)
-      .setFeaturesCol("indexedFeatures")
-    val pipeline = new Pipeline()
-      .setStages(Array(featureIndexer, rf))
-    val model = pipeline.fit(trainingData)
-    model.transform(testData)
-  }
-
   def displayChart(x: Array[Double], target: Array[Double], predicted: Array[Double]): Unit = {
     val chart = new XYChartBuilder().width(800).height(600)
       .title(getClass.getSimpleName).xAxisTitle("Time").yAxisTitle("Price").build()

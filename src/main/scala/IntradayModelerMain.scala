@@ -1,5 +1,9 @@
 import data.stocktimeseries.AlphaVantage.{TechnicalIndicatorIntervalEnum, TechnicalIndicatorSeriesTypeEnum}
+import org.apache.spark.ml.Pipeline
 import org.apache.spark.ml.evaluation.RegressionEvaluator
+import org.apache.spark.ml.feature.VectorIndexer
+import org.apache.spark.ml.regression.RandomForestRegressor
+import org.apache.spark.sql.DataFrame
 
 object IntradayModelerMain extends IntradayModeler {
   def main(args: Array[String]): Unit = {
@@ -26,5 +30,22 @@ object IntradayModelerMain extends IntradayModeler {
     val target = predictions.select(targetCol).collect.map(row => row.getDecimal(0).doubleValue())
     val predicted = predictions.select(predictionCol).collect.map(row => row.getDouble(0))
     displayChart(uniformTime,target,predicted)
+  }
+
+  def getPredictedDataFrame(featureDf: DataFrame, targetCol: String, featureCol: String): DataFrame = {
+    val featureIndexer = new VectorIndexer()
+      .setInputCol(featureCol)
+      .setOutputCol("indexedFeatures")
+      .setMaxCategories(4)
+      .fit(featureDf)
+    val Array(trainingData, testData) = featureDf.randomSplit(Array(0.7, 0.3))
+    // Train a RandomForest model.
+    val rf = new RandomForestRegressor()
+      .setLabelCol(targetCol)
+      .setFeaturesCol("indexedFeatures")
+    val pipeline = new Pipeline()
+      .setStages(Array(featureIndexer, rf))
+    val model = pipeline.fit(trainingData)
+    model.transform(testData)
   }
 }

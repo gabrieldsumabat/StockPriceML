@@ -38,7 +38,6 @@ object AlphaVantageCsvApi {
         case None =>
         case Some(value) => BASE_URL_STRING += s"&${value.ARG_NAME}=${value.ARG_VALUE.get}"
       }}}
-    println(BASE_URL_STRING)
     val content = scala.io.Source.fromURL(BASE_URL_STRING)
     val csv = content.mkString
     content.close()
