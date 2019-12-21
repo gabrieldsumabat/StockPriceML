@@ -65,5 +65,22 @@ class IntradayModeler {
     chart.addSeries("Predicted", x, predicted)
     new SwingWrapper[XYChart](chart).displayChart()
   }
+
+  def getPredictedDataFrame(featureDf: DataFrame, targetCol: String, featureCol: String): DataFrame = {
+    val featureIndexer = new VectorIndexer()
+      .setInputCol(featureCol)
+      .setOutputCol("indexedFeatures")
+      .setMaxCategories(4)
+      .fit(featureDf)
+    val Array(trainingData, testData) = featureDf.randomSplit(Array(0.7, 0.3))
+    // Train a RandomForest model.
+    val rf = new RandomForestRegressor()
+      .setLabelCol(targetCol)
+      .setFeaturesCol("indexedFeatures")
+    val pipeline = new Pipeline()
+      .setStages(Array(featureIndexer, rf))
+    val model = pipeline.fit(trainingData)
+    model.transform(testData)
+  }
 }
 

@@ -20,32 +20,13 @@ object IntradayModelerMain extends IntradayModeler {
     //Machine Learning Algorithm
     val predictions = getPredictedDataFrame(intradayVectorizedDf,targetCol,featureCol)
     predictions.select(predictionCol, targetCol, featureCol).show(25,truncate = false)
-    val evaluator = new RegressionEvaluator()
-      .setLabelCol(targetCol)
-      .setPredictionCol(predictionCol)
-      .setMetricName("rmse")
+    //Metrics
+    val evaluator = new RegressionEvaluator().setLabelCol(targetCol).setPredictionCol(predictionCol).setMetricName("rmse")
     println("Root Mean Squared Error (RMSE) on test data = " + evaluator.evaluate(predictions))
     //Graph Generated Model
     val uniformTime = (0 until predictions.count().toInt).map(_.toDouble).toArray
     val target = predictions.select(targetCol).collect.map(row => row.getDecimal(0).doubleValue())
     val predicted = predictions.select(predictionCol).collect.map(row => row.getDouble(0))
     displayChart(uniformTime,target,predicted)
-  }
-
-  def getPredictedDataFrame(featureDf: DataFrame, targetCol: String, featureCol: String): DataFrame = {
-    val featureIndexer = new VectorIndexer()
-      .setInputCol(featureCol)
-      .setOutputCol("indexedFeatures")
-      .setMaxCategories(4)
-      .fit(featureDf)
-    val Array(trainingData, testData) = featureDf.randomSplit(Array(0.7, 0.3))
-    // Train a RandomForest model.
-    val rf = new RandomForestRegressor()
-      .setLabelCol(targetCol)
-      .setFeaturesCol("indexedFeatures")
-    val pipeline = new Pipeline()
-      .setStages(Array(featureIndexer, rf))
-    val model = pipeline.fit(trainingData)
-    model.transform(testData)
   }
 }
