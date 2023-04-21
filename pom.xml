@@ -10,7 +10,7 @@
 
   <name>valuestocks</name>
   <properties>
-    <spark.hdp.version>2.4.4</spark.hdp.version>
+    <spark.hdp.version>3.4.0</spark.hdp.version>
     <scala.version>2.12.10</scala.version>
     <scala.binary.version>2.12</scala.binary.version>
   </properties>
